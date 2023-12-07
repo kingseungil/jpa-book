@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
+import java.util.List;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -50,6 +51,13 @@ public class JpaApplication {
         // 한 건 조회
         Member findMember = em.find(Member.class, id);
         System.out.println("findMember=" + findMember.getUsername() + ", age =" + findMember.getAge());
+
+        //목록 조회
+        List<Member> members = em.createQuery("select m from Member m", Member.class).getResultList();
+        System.out.println("members.size=" + members.size());
+
+        //삭제
+        em.remove(member);
     }
 
 }
