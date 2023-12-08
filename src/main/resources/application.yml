@@ -1,20 +1,24 @@
-#server:
-#  port: 8080
-#
-#spring:
-#  datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://localhost:3306/jpa?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
-#    username: root
-#    password: 1234
-#  jpa:
-#    database: mysql
-#    hibernate:
-#      ddl-auto: update
-#    properties:
-#      hibernate:
-#        format_sql: true
-#        show_sql: true
-#        dialect: org.hibernate.dialect.MySQLDialect # 데이터베이스 방언
-#        use_sql_comments: true
-#    defer-datasource-initialization: true
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/jpa?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
+  jpa:
+    database: mysql
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect # 데이터베이스 방언
+        use_sql_comments: true
+    defer-datasource-initialization: true
+
+logging:
+    level:
+        org.hibernate.type.descriptor.sql: info
