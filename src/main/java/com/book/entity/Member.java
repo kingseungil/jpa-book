@@ -42,22 +42,8 @@ public class Member {
     @Setter
     @Column(name = "AGE")
     private int age;
-
-    // 연관관계 매핑
-    @ManyToOne
-    @JoinColumn(name = "TEAM_ID")
-    private Team team;
-
+    
     @OneToMany(mappedBy = "member")
     private List<Order> orders = new ArrayList<>();
 
-
-    public void setTeam(Team team) {
-        this.team = team;
-
-        // 무한루프에 빠지지 않도록 체크
-        if (!team.getMembers().contains(this)) {
-            team.getMembers().add(this);
-        }
-    }
 }
