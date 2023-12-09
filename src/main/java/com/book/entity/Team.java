@@ -28,4 +28,11 @@ public class Team {
     // == 추가 ==
     @OneToMany(mappedBy = "team")
     private List<Member> members = new ArrayList<>();
+
+    public void addMember(Member member) {
+        this.members.add(member);
+        if (member.getTeam() != this) { // 무한루프에 빠지지 않도록 체크
+            member.setTeam(this);
+        }
+    }
 }

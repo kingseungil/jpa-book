@@ -1,26 +1,17 @@
 package com.book.entity;
 
-import com.book.type.RoleType;
-import jakarta.annotation.security.DenyAll;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.UniqueConstraint;
-import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
 @Getter
 @Entity
 @AllArgsConstructor
@@ -33,12 +24,18 @@ import lombok.Setter;
 })
 public class Member {
 
+    @Setter
     @Id
     @Column(name = "ID")
     private String id;
 
+    @Setter
     @Column(name = "NAME", nullable = false, length = 10) // 추가
     private String username;
+
+    @Setter
+    @Column(name = "AGE")
+    private int age;
 
     // 연관관계 매핑
     @ManyToOne
@@ -46,4 +43,12 @@ public class Member {
     private Team team;
 
 
+    public void setTeam(Team team) {
+        this.team = team;
+
+        // 무한루프에 빠지지 않도록 체크
+        if (!team.getMembers().contains(this)) {
+            team.getMembers().add(this);
+        }
+    }
 }
