@@ -6,8 +6,8 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
-@IdClass(MemberProductId.class)
-@Entity
+//@IdClass(MemberProductId.class)
+//@Entity
 public class MemberProduct {
 
     @Id
