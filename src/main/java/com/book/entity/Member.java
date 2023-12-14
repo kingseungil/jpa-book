@@ -27,7 +27,7 @@ import lombok.Setter;
     columnNames = {"NAME", "AGE"}
   )
 })
-public class Member {
+public class Member extends BaseEntity {
 
     @Setter
     @Id
@@ -42,7 +42,7 @@ public class Member {
     @Setter
     @Column(name = "AGE")
     private int age;
-    
+
     @OneToMany(mappedBy = "member")
     private List<Order> orders = new ArrayList<>();
 
