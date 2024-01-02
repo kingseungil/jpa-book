@@ -137,8 +137,6 @@ FROM MEMBER M
 WHERE M.MEMBER_ID='member1'
 ```
 
-> [!NOTE]
->
 > **NULL 제약조건과 JPA 조인 전략**
 > 
 > 위의 sql 쿼리를 보면 조인할 때 `LEFT OUTER JOIN`을 사용했다. 이유는 MEMBER 테이블의 TEAM_ID 컬럼이 NULL일 수 있기 때문이다.
@@ -160,3 +158,156 @@ WHERE M.MEMBER_ID='member1'
 > - `@JoinColumn(nullable = false)` : NULL 불허, `INNER JOIN` 사용
 > 
 > 또는 `@ManyToOne(fetch = FetchType.EAGER, optional = false)`로 설정해도 내부 조인을 사용한다.
+
+### 지연 로딩 (Lazy Loading)
+
+![](images/fa889626.png)
+
+지연 로딩을 사용하면 연관된 엔티티를 실제 사용하는 시점에 데이터베이스에서 조회한다.
+
+```java
+Member member = em.find(Member.class, "member1");
+Team team = member.getTeam(); // 반환 Team은 프록시 객체
+System.out.println("team = " + team.getName()); // 이 때 데이터베이스에서 조회 
+```
+
+### JPA 기본 페치 전략
+
+- **@ManyToOne, @OneToOne** : 즉시 로딩(FetchType.EAGER)
+- **@OneToMany, @ManyToMany** : 지연 로딩(FetchType.LAZY)
+
+## 영속성 전이(Cascade)
+
+특정 엔티티를 영속 상태로 만들 때 연관된 엔티티도 함께 영속 상태로 만들고 싶으면 `영속성 전이 기능`을 사용하면 된다.
+
+쉽게 말해서 영속성 전이를 사용하면 부모 엔티티를 저장할 때 자식 엔티티도 함께 저장할 수 있다.
+
+![](images/db6e43b5.png)
+
+위 그림과 같이 부모와 자식이 1:N 관계를 맺고 있다고 해보자.
+
+### 영속성 전이: 저장
+
+```java
+@Entity
+public class Parent {
+    // ...
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.PERSIST)
+    private List<Child> childList = new ArrayList<>();
+    // ...
+}
+```
+
+부모를 영속화할때 연관된 자식들도 함께 영속화하기 위해 `cascade = CascadeType.PERSIST`를 설정했다.
+
+```java
+private static void saveWithCascade(EnttiyManager em) {
+    Child child1 = new Child();
+    Child child2 = new Child();
+
+    Parent parent = new Parent();
+    child1.setParent(parent); // 연관관계 설정
+    child2.setParent(parent); // 연관관계 설정
+    parent.getChildList().add(child1);
+    parent.getChildList().add(child2);
+    
+    // 부모 저장, 연관된 자식들도 함께 저장
+    em.persist(parent);
+}
+```
+
+![Cascade 실행](images/9daa5346.png)
+
+부모를 저장했는데 자식도 함께 저장된다.
+
+> 영속성 전이는 연관관계를 매핑하는 것과는 아무 관련이 없다.
+> 
+> 단지 엔티티를 영속화할 때 연관된 엔티티도 함께 영속화하는 편리함을 제공할 뿐이다.
+
+### 영속성 전이: 삭제
+
+방금 저장한 부모와 자식 엔티티를 모두 제거하려면 다음 코드와 같이 각각 제거해줘야한다.
+
+```java
+Parent parent = em.find(Parent.class, 1L);
+Child child1 = em.find(Child.class, 1L);
+Child child2 = em.find(Child.class, 2L);
+
+em.remove(child1);
+em.remove(child2);
+em.remove(paranet);
+```
+
+이렇게 하면 부모와 자식 엔티티를 모두 제거할 수 있다. 하지만 영속성 전이를 사용하면 부모 엔티티만 제거해도 연관된 자식 엔티티도 함께 제거할 수 있다.
+
+```java
+@Entity
+public class Parent {
+    // ...
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.REMOVE)
+    private List<Child> childList = new ArrayList<>();
+    // ...
+}
+```
+
+```java
+private static void deleteWithCascade(EntityManager em) {
+    Parent parent = em.find(Parent.class, 1L);
+    em.remove(parent);
+}
+```
+
+위 코드를 실행하면 DELETE SQL을 3번 실행하여 부모와 연관된 자식들 모두 삭제한다.
+
+삭제 순서는 외래 키 제약조건을 고려해서 자식을 먼저 삭제하고 부모를 삭제한다.
+
+### CASCADE 종류
+
+```java
+public enum CascadeType {
+    ALL, // 모두 적용
+    PERSIST, // 영속
+    MERGE, // 병합
+    REMOVE, // 삭제
+    REFRESH, // REFRESH
+    DETACH // DETACH
+}
+```
+
+또한 여러 속성을 같이 사용할 수 있다.
+
+`cascade = {CascadeType.PERSIST, CascadeType.REMOVE}`
+
+> 참고로, PERSIST, REMOVE는 em.persist(), em.remove()를 실행할 때 바로 전이가 발생하지 않고 플러시를 호출할 때 전이가 발생한다.
+
+## 고아 객체
+
+JPA는 부모 엔티티와 연관관계가 끊어진 자식 엔티티를 자동으로 삭제하는 기능을 제공하는데 이것을 `고아 객체 제거`라고 한다.
+
+```java
+@Entity
+public class Parent {
+    // ...
+    @OneToMany(mappedBy = "parent", orphanRemoval = true) // 고아 객체 제거 기능
+    private List<Child> childList = new ArrayList<>();
+    // ...
+}
+```
+
+```java
+Parent parent = em.find(Parent.class, 1L);
+parent.getChildList().remove(0); // 자식 엔티티를 컬렉션에서 제거
+```
+
+```sql
+DELETE FROM CHILD WHERE CHILD_ID = ?
+```
+
+이렇게 `orphanRemoval = true`를 사용하면 부모 엔티티의 컬렉션에서 자식 엔티티의 참조만 제거하면 자식 엔티티가 자동으로 삭제된다.
+
+## 정리
+
+- JPA 구현체들은 객체 그래프를 마음껏 탐색할 수 있도록 지원하는데 이것을 가능하게 하는 것이 `프록시`이다.
+- 객체를 조회할 때 연관된 객체를 함께 조회하려면 `즉시 로딩`을 사용하면 되고, 연관된 객체를 실제 사용하는 시점에 조회하려면 `지연 로딩`을 사용하면 된다.
+- 객체를 저장하거나 삭제할 때 연관된 객체도 함께 저장하거나 삭제하려면 `영속성 전이`를 사용하면 된다.
+- 부모 엔티티와 연관관계가 끊어진 자식 엔티티는 자동으로 삭제하려면 `고아 객체 제거`를 사용하면 된다.
