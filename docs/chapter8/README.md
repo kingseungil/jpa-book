@@ -137,7 +137,7 @@ FROM MEMBER M
 WHERE M.MEMBER_ID='member1'
 ```
 
-> \[!IMPORTANT]
+> [!NOTE]
 >
 > **NULL 제약조건과 JPA 조인 전략**
 > 
