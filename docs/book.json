@@ -1,0 +1,21 @@
+{
+  "plugins": [
+    "flexible-alerts"
+  ],
+  "pluginsConfig": {
+    "flexible-alerts": {
+      "note": {
+        "label": "Hinweis"
+      },
+      "tip": {
+        "label": "Tipp"
+      },
+      "warning": {
+        "label": "Warnung"
+      },
+      "danger": {
+        "label": "Achtung"
+      }
+    }
+  }
+}
